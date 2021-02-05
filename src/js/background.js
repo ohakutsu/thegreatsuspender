@@ -3,7 +3,7 @@
  * The Great Suspender
  * Copyright (C) 2017 Dean Oemcke
  * Available under GNU GENERAL PUBLIC LICENSE v2
- * http://github.com/greatsuspender/thegreatsuspender
+ * http://github.com/deanoemcke/thegreatsuspender
  * ༼ つ ◕_◕ ༽つ
 */
 var tgs = (function() {
@@ -29,6 +29,7 @@ var tgs = (function() {
   const STATE_UNLOADED_URL = 'unloadedUrl';
   const STATE_HISTORY_URL_TO_REMOVE = 'historyUrlToRemove';
   const STATE_SET_AUTODISCARDABLE = 'setAutodiscardable';
+  const STATE_SHOW_NAG = 'showNag';
   const STATE_SUSPEND_REASON = 'suspendReason'; // 1=auto-suspend, 2=manual-suspend, 3=discarded
   const STATE_SCROLL_POS = 'scrollPos';
 
@@ -651,8 +652,16 @@ var tgs = (function() {
   }
 
   function checkForTriggerUrls(tab, url) {
-    // test for a save of keyboard shortcuts (chrome://extensions/shortcuts)
-    if (url === 'chrome://extensions/shortcuts') {
+    // test for special case of a successful donation
+    if (url.indexOf('greatsuspender.github.io/thanks.html') > 0) {
+      gsStorage.setOptionAndSync(gsStorage.NO_NAG, true);
+      gsAnalytics.reportEvent('Donations', 'HidePopupAuto', true);
+      chrome.tabs.update(tab.id, {
+        url: chrome.extension.getURL('thanks.html'),
+      });
+
+      // test for a save of keyboard shortcuts (chrome://extensions/shortcuts)
+    } else if (url === 'chrome://extensions/shortcuts') {
       _triggerHotkeyUpdate = true;
     }
   }
@@ -871,6 +880,7 @@ var tgs = (function() {
       tab.id,
       STATE_DISABLE_UNSUSPEND_ON_RELOAD
     );
+    let showNag = tgs.getTabStatePropForTabId(tab.id, tgs.STATE_SHOW_NAG);
     clearTabStateForTabId(tab.id);
 
     if (isCurrentFocusedTab(tab)) {
@@ -888,7 +898,7 @@ var tgs = (function() {
     const quickInit =
       gsStorage.getOption(gsStorage.DISCARD_AFTER_SUSPEND) && !tab.active;
     gsSuspendedTab
-      .initTab(tab, tabView, { quickInit })
+      .initTab(tab, tabView, { quickInit, showNag })
       .catch(error => {
         gsUtils.warning(tab.id, error);
       })
@@ -1217,7 +1227,7 @@ var tgs = (function() {
         ) {
           gsUtils.log(
             'background',
-            `Notice target extension version: ${noticeTargetExtensionVersion}
+            `Notice target extension version: ${noticeTargetExtensionVersion} 
             does not match actual extension version: ${
               chrome.runtime.getManifest().version
             }`
@@ -1610,37 +1620,37 @@ var tgs = (function() {
       request.action
     );
 
-    switch (request.action) {
-      case 'loadCleanScreencaptureBlocklist':
-        gsCleanScreencaps.loadList()
-      case 'reportTabState':
-        var contentScriptStatus =
-          request && request.status ? request.status : null;
-        if (
-          contentScriptStatus === 'formInput' ||
-          contentScriptStatus === 'tempWhitelist'
-        ) {
-          chrome.tabs.update(sender.tab.id, { autoDiscardable: false });
-        } else if (!sender.tab.autoDiscardable) {
-          chrome.tabs.update(sender.tab.id, { autoDiscardable: true });
-        }
-        // If tab is currently visible then update popup icon
-        if (sender.tab && isCurrentFocusedTab(sender.tab)) {
-          calculateTabStatus(sender.tab, contentScriptStatus, function (status) {
-            setIconStatus(status, sender.tab.id);
-          });
-        }
-        sendResponse();
-        return false;
-      case 'savePreviewData':
-        gsTabSuspendManager.handlePreviewImageResponse(
-          sender.tab,
-          request.previewUrl,
-          request.errorMsg
-        ); // async. unhandled promise
-        sendResponse();
-        return false;
+    if (request.action === 'reportTabState') {
+      var contentScriptStatus =
+        request && request.status ? request.status : null;
+      if (
+        contentScriptStatus === 'formInput' ||
+        contentScriptStatus === 'tempWhitelist'
+      ) {
+        chrome.tabs.update(sender.tab.id, { autoDiscardable: false });
+      } else if (!sender.tab.autoDiscardable) {
+        chrome.tabs.update(sender.tab.id, { autoDiscardable: true });
+      }
+      // If tab is currently visible then update popup icon
+      if (sender.tab && isCurrentFocusedTab(sender.tab)) {
+        calculateTabStatus(sender.tab, contentScriptStatus, function(status) {
+          setIconStatus(status, sender.tab.id);
+        });
+      }
+      sendResponse();
+      return false;
     }
+
+    if (request.action === 'savePreviewData') {
+      gsTabSuspendManager.handlePreviewImageResponse(
+        sender.tab,
+        request.previewUrl,
+        request.errorMsg
+      ); // async. unhandled promise
+      sendResponse();
+      return false;
+    }
+
     // Fallback to empty response to ensure callback is made
     sendResponse();
     return false;
@@ -1843,6 +1853,7 @@ var tgs = (function() {
     STATE_SET_AUTODISCARDABLE,
     STATE_SUSPEND_REASON,
     STATE_SCROLL_POS,
+    STATE_SHOW_NAG,
     getTabStatePropForTabId,
     setTabStatePropForTabId,
 
@@ -1886,7 +1897,6 @@ var tgs = (function() {
 Promise.resolve()
   .then(tgs.backgroundScriptsReadyAsPromised) // wait until all gsLibs have loaded
   .then(gsStorage.initSettingsAsPromised) // ensure settings have been loaded and synced
-  .then(gsStorage.checkManagedStorageAndOverride) // enforce managed settings
   .then(() => {
     // initialise other gsLibs
     return Promise.all([
@@ -1896,7 +1906,6 @@ Promise.resolve()
       gsTabCheckManager.initAsPromised(),
       gsTabDiscardManager.initAsPromised(),
       gsSession.initAsPromised(),
-      gsCleanScreencaps.initAsPromised()
     ]);
   })
   .catch(error => {

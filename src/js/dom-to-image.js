@@ -1,7 +1,6 @@
 // dom-to-image-2.6.0
-// patched to add toCanvas public function (line 112)
-// patched to fix uncaught in promise (line 742)
-// patched to fix illegal symbols in data-uri (line 349, 358)
+// patched to add toCanvas public function (line 111)
+// patched to fix uncaught in promise (line 741)
 (function (global) {
     'use strict';
 
@@ -346,7 +345,7 @@
                 node.setAttribute('xmlns', 'http://www.w3.org/1999/xhtml');
                 return new XMLSerializer().serializeToString(node);
             })
-            // .then(util.escapeXhtml)
+            .then(util.escapeXhtml)
             .then(function (xhtml) {
                 return '<foreignObject x="0" y="0" width="100%" height="100%">' + xhtml + '</foreignObject>';
             })
@@ -355,7 +354,7 @@
                     foreignObject + '</svg>';
             })
             .then(function (svg) {
-                return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+                return 'data:image/svg+xml;charset=utf-8,' + svg;
             });
     }
 
