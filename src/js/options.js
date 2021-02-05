@@ -39,11 +39,6 @@
     }
   }
 
-  // Used to prevent options set in managed storage from being changed
-  function blockOption(element) {
-    element.setAttribute("disabled", "");
-  }
-
   //populate settings from synced storage
   function initSettings() {
     var optionEls = document.getElementsByClassName('option'),
@@ -55,9 +50,6 @@
       element = optionEls[i];
       pref = elementPrefMap[element.id];
       populateOption(element, gsStorage.getOption(pref));
-      if (gsStorage.isOptionManaged(pref)) {
-        blockOption(element);
-      }
     }
 
     setForceScreenCaptureVisibility(
