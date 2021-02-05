@@ -1,3 +1,9 @@
+# The Great Suspender x ohakutsu
+"The Great Suspender x ohakutsu" is forked from https://github.com/greatsuspender/thegreatsuspender.
+This Google Chrome extension is a customized version of original "The Great Suspender".
+
+The following is the readme for original "The Great Suspender".
+
 # The Great Suspender
 
 <img src="/src/img/suspendy-guy.png" width="100px" />
