@@ -25,8 +25,7 @@ const gsStorageSettings = {
 
   DISCARD_AFTER_SUSPEND: 'discardAfterSuspend',
   DISCARD_IN_PLACE_OF_SUSPEND: 'discardInPlaceOfSuspend',
-  USE_ALT_SCREEN_CAPTURE_LIB: 'useAlternateScreenCaptureLib',
-  ENABLE_CLEAN_SCREENCAPS: 'cleanScreencaps',
+  USE_ALT_SCREEN_CAPTURE_LIB: 'useAlternateScreenCaptureLib'
 };
 
 var gsStorage = {
@@ -65,7 +64,6 @@ var gsStorage = {
     defaults[gsStorage.NO_NAG] = false;
     defaults[gsStorage.WHITELIST] = '';
     defaults[gsStorage.THEME] = 'light';
-    defaults[gsStorage.ENABLE_CLEAN_SCREENCAPS] = false;
 
     return defaults;
   },
@@ -182,14 +180,14 @@ var gsStorage = {
    * I did this because I think the key is easier to interpret for someone
    * editing the managed storage manually.
    */
-  checkManagedStorageAndOverride() {
+   checkManagedStorageAndOverride() {
     const settingsList = Object.keys(gsStorageSettings);
     chrome.storage.managed.get(settingsList, result => {
       const settings = gsStorage.getSettings();
 
       Object.keys(result).forEach(key => {
-        if (key === 'WHITELIST') {
-          settings[gsStorage[key]] = result[key].replace(/[\s\n]+/g, '\n');
+        if (key === "WHITELIST") {
+          settings[gsStorage[key]] = result[key].replace(/[\s\n]+/g, "\n");
         } else {
           settings[gsStorage[key]] = result[key];
         }
@@ -459,5 +457,5 @@ var gsStorage = {
    *
    * @param option The option name, such as "gsWhitelist" (not "WHITELIST")
    */
-  isOptionManaged: option => managedOptions.includes(option),
+  isOptionManaged: option => managedOptions.includes(option)
 };
