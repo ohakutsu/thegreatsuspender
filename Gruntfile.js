@@ -70,6 +70,20 @@ module.exports = function(grunt) {
           ],
         },
       },
+      noticeTgut: {
+        files: {
+          '<%= config.tempDir %>src/js/':
+            '<%= config.tempDir %>src/js/background.js',
+        },
+        options: {
+          replacements: [
+            {
+              pattern: /greatsuspender\.github\.io\/notice\.json/,
+              replacement: 'greatsuspender.github.io/notice-tgut.json',
+            },
+          ],
+        },
+      },
     },
     crx: {
       public: {
@@ -110,6 +124,7 @@ module.exports = function(grunt) {
     'copy',
     'string-replace:debugon',
     'string-replace:localesTgut',
+    'string-replace:noticeTgut',
     'crx:public',
     'crx:private',
     'clean',

@@ -131,8 +131,9 @@ var gsUtils = {
 
   //tests for non-standard web pages. does not check for suspended pages!
   isSpecialTab: function(tab) {
-    const url = tab.url || tab.pendingUrl;
-    if (gsUtils.isSuspendedTab(tab, true)) {
+    var url = tab.url;
+
+    if (gsUtils.isSuspendedUrl(url, true)) {
       return false;
     }
     // Careful, suspended urls start with "chrome-extension://"
@@ -149,8 +150,7 @@ var gsUtils = {
   },
 
   isFileTab: function(tab) {
-    const url = tab.url || tab.pendingUrl;
-    if (url.indexOf('file') === 0) {
+    if (tab.url.indexOf('file') === 0) {
       return true;
     }
     return false;
@@ -167,10 +167,9 @@ var gsUtils = {
 
   //does not include suspended pages!
   isInternalTab: function(tab) {
-    const url = tab.url || tab.pendingUrl;
     var isLocalExtensionPage =
-      url.indexOf('chrome-extension://' + chrome.runtime.id) === 0;
-    return isLocalExtensionPage && !gsUtils.isSuspendedTab(tab);
+      tab.url.indexOf('chrome-extension://' + chrome.runtime.id) === 0;
+    return isLocalExtensionPage && !gsUtils.isSuspendedUrl(tab.url);
   },
 
   isProtectedPinnedTab: function(tab) {
@@ -203,14 +202,11 @@ var gsUtils = {
   },
 
   isSuspendedTab: function(tab, looseMatching) {
-    const url = tab.url || tab.pendingUrl;
-    return gsUtils.isSuspendedUrl(url, looseMatching);
+    return gsUtils.isSuspendedUrl(tab.url, looseMatching);
   },
 
   isSuspendedUrl: function(url, looseMatching) {
-    if (!url) {
-      return false;
-    } else if (looseMatching) {
+    if (looseMatching) {
       return url.indexOf('suspended.html') > 0;
     } else {
       return url.indexOf(chrome.extension.getURL('suspended.html')) === 0;
