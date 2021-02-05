@@ -238,7 +238,7 @@ body.img-preview-mode .gsTopBar {
     background: #222;
 }
 .dark .suspendedMsg img {
-    filter: brightness(150%);
+    filter: grayscale(40%);
 }
 .dark .gsTopBar,
 .dark .gsTopBarTitle,
