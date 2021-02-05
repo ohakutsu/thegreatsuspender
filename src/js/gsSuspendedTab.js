@@ -380,7 +380,7 @@ var gsSuspendedTab = (function() {
     } else {
       _document.body.classList.add('waking');
       _document.getElementById('snoozyImg').src = chrome.extension.getURL(
-        'img/snoozy_tab_awake.svg'
+        'img/ohakutsu_awake.png'
       );
       _document.getElementById('snoozySpinner').classList.add('spinner');
     }
